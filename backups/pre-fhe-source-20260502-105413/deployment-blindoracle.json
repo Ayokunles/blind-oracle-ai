@@ -1,0 +1,13 @@
+{
+  "BlindOracle": {
+    "vault": "0xEBe26e87b898152e387C4f18F4C8DA932cbDC29f",
+    "analyst": "0xC2b2677E092191f96373CA54920fAc16863F92Ed"
+  },
+  "MockToken": {
+    "address": "0x0a9A09B392f95D8999a1a5a14E09cd378Fc23F78",
+    "symbol": "MTBILL"
+  },
+  "deployer": "0xfB035346CF29e0d2a96681706b3296D4D2E910D3",
+  "network": "sepolia",
+  "timestamp": "2026-05-02T08:59:02.811Z"
+}

@@ -14,7 +14,11 @@ This document tracks what has been completed so far and what still needs work fo
 | AI analyst dashboard placement | Reverted | Removed from dashboard to keep the app simple. Analyst remains in its own tab. |
 | FHE vault contract | Done for demo | Contract is deployed at `0x8A18528D7e88C481dB341a9D8eE50E4e8D4aF537` and has compliance controls. |
 | FHE vault UI | Done for focused demo | Added a separate Confidential Vault tab for encrypted private vault creation and encrypted handle display. The main dashboard stays simple. |
+<<<<<<< HEAD
 | Zama KMS decrypt flow | Not started | Needs SDK/KMS integration and permission flow. |g
+=======
+| Zama KMS decrypt flow | Not started | Needs SDK/KMS integration and permission flow. |
+>>>>>>> d2df176cb3828cedfb74f8898dd12cce542c8762
 | Compliance/access control | Done for baseline | Public and FHE vault contracts now have owner-managed compliance toggles and allowlists. |
 | Token switching | Deferred | Removed from the dashboard for focus. Public vault deposits use the configured RWA token only. |
 | Multi-asset support | Not started | Future work after single-token demo is solid. |

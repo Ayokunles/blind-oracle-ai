@@ -1,0 +1,16 @@
+{
+  "name": "private-ai-oracle",
+  "version": "1.0.0",
+  "description": "AI Oracle Backend for Private AI Agent - processes encrypted queries using Zama FHE",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js"
+  },
+  "dependencies": {
+    "@zama-fhe/sdk": "^2.2.0",
+    "axios": "^1.15.2",
+    "dotenv": "^16.3.1",
+    "viem": "^2.48.1"
+  }
+}
