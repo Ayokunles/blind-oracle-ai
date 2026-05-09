@@ -1123,10 +1123,16 @@ function AppContent({ isDarkMode, setIsDarkMode }) {
                           {formatUsd(totalUsdValue)}
                         </CardTitle>
                         <div className="flex items-center gap-2 mt-2">
+                          <div className="px-2 py-0.5 rounded-md bg-[var(--gold)]/10 border border-[var(--gold)]/20 flex items-center gap-1">
+                            <span className="text-[10px] font-bold text-[var(--gold)]">{(walletTokenAmount + vaultTokenAmount).toFixed(2)} {displayTokenSymbol}</span>
+                          </div>
                           <div className="px-2 py-0.5 rounded-md bg-green-500/10 border border-green-500/20 flex items-center gap-1">
                             <ArrowUpRight className="w-3 h-3 text-green-500" />
                             <span className="text-[10px] font-bold text-green-500">{yieldApyPercent.toFixed(2)}% APY</span>
                           </div>
+                        </div>
+                        <div className="mt-2 text-[10px] text-[var(--text-muted)] font-medium tracking-wide">
+                          PRICE: {formatUsd(livePriceUsd)} / {displayTokenSymbol}
                         </div>
                       </div>
                       <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-[var(--gold)]/10 border border-[var(--gold)]/20 group-hover:scale-110 transition-transform">
@@ -1432,7 +1438,7 @@ function AppContent({ isDarkMode, setIsDarkMode }) {
                           <div className="h-full gold-gradient rounded-full shadow-[0_0_10px_var(--gold-glow)] transition-all duration-1000" style={{ width: `${asset.allocation}%` }} />
                         </div>
                         <div className="flex justify-between mt-1.5">
-                          <span className="text-[10px] text-[var(--text-muted)] font-medium">Position Value</span>
+                          <span className="text-[10px] text-[var(--text-muted)] font-medium">{Number(asset.value).toFixed(2)} Tokens</span>
                           <span className="text-[10px] text-[var(--text-secondary)] font-bold">{formatUsd(asset.usdValue)}</span>
                         </div>
                       </div>
