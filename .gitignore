@@ -9,7 +9,6 @@ yarn.lock
 
 # Build
 cache/
-artifacts/
 *.tsbuildinfo
 
 # IDE
@@ -24,10 +23,6 @@ Thumbs.db
 
 # Deployment
 deployment.json
-<<<<<<< HEAD
- 
 backups/
 frontend-old/
-=======
->>>>>>> d2df176cb3828cedfb74f8898dd12cce542c8762
 .vercel
