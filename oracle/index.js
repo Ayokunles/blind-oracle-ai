@@ -21,7 +21,7 @@ const CONFIG = {
   vaultAddress: process.env.VAULT_ADDRESS || deployment.BlindOracle.vault,
   fheVaultAddress: process.env.FHE_VAULT_ADDRESS || deployment.BlindOracle.fheVault,
   tokenAddress: process.env.TOKEN_ADDRESS || deployment.MockToken.address,
-  port: Number(process.env.ORACLE_PORT || 8787),
+  port: Number(process.env.PORT || process.env.ORACLE_PORT || 8787),
   groqApiKey: process.env.GROQ_API_KEY,
   groqModel: process.env.GROQ_MODEL || 'llama-3.1-8b-instant',
   yieldApyBps: Number(process.env.YIELD_APY_BPS || 520),
@@ -733,8 +733,8 @@ function startApiServer() {
     return sendJson(res, 404, { error: 'Not found.' });
   });
 
-  server.listen(CONFIG.port, () => {
-    console.log(`Live analyst API listening at http://localhost:${CONFIG.port}`);
+  server.listen(CONFIG.port, '0.0.0.0', () => {
+    console.log(`Live analyst API listening at http://0.0.0.0:${CONFIG.port}`);
   });
 }
 
