@@ -210,6 +210,29 @@ h1, h2, h3, h4 {
   animation: pulse-gold 2s infinite ease-in-out;
 }
 
+.total-value-live {
+  transition: filter 0.25s ease, transform 0.25s ease;
+}
+
+.total-value-flash {
+  animation: total-value-flash 0.9s ease-out;
+}
+
+@keyframes total-value-flash {
+  0% {
+    filter: drop-shadow(0 0 0 rgba(244, 196, 48, 0));
+    transform: scale(1);
+  }
+  35% {
+    filter: drop-shadow(0 0 14px rgba(244, 196, 48, 0.75));
+    transform: scale(1.025);
+  }
+  100% {
+    filter: drop-shadow(0 0 0 rgba(244, 196, 48, 0));
+    transform: scale(1);
+  }
+}
+
 /* AI Analysis Styling */
 .ai-bubble {
   @apply p-5 rounded-2xl border border-[var(--border-color)] bg-[var(--bg-muted)] leading-relaxed;

@@ -260,60 +260,87 @@ async function readPortfolioSnapshot(userAddress, extraTokenAddresses = [], fheU
 
 function getRuleBasedLiveAnalysis(queryText, snapshot) {
   const lower = queryText.toLowerCase();
+  const symbol = 'RWA';
+  const formatToken = (value) => Number(value || 0).toFixed(4);
+  const formatPercent = (value) => Number(value || 0).toFixed(2);
+  const formatUsdValue = (value) => `$${Number(value || 0).toFixed(2)}`;
+  const sectioned = (sections) =>
+    sections
+      .filter((section) => section?.content)
+      .map((section) => section.label ? `${section.label}\n${section.content}` : section.content)
+      .join('\n\n');
+
   if (lower.includes('how are you') || lower.includes('hello') || lower.includes('hi ') || lower === 'hi') {
-    return "I'm doing great! I'm currently monitoring the Sepolia blockchain for your RWA holdings. How can I help you with your portfolio today?";
+    return sectioned(
+      [{ content: 'I can answer wallet, portfolio, vault, balance, yield, risk, and privacy questions for your connected BlindOracle account.' }]
+    );
   }
 
-  const symbol = 'RWA';
-  const vaultBalance = snapshot.vault.balanceFormatted.toLocaleString(undefined, { maximumFractionDigits: 2 });
-  const walletBalance = snapshot.token.walletFormatted.toLocaleString(undefined, { maximumFractionDigits: 2 });
-  const total = snapshot.derived.totalTrackedTokens.toLocaleString(undefined, { maximumFractionDigits: 2 });
+  const vaultBalance = formatToken(snapshot.vault.balanceFormatted);
+  const walletBalance = formatToken(snapshot.token.walletFormatted);
+  const total = formatToken(snapshot.derived.totalTrackedTokens);
   const vaultShare = snapshot.derived.vaultedSharePercent.toFixed(2);
   const walletShare = snapshot.derived.walletSharePercent.toFixed(2);
   const depositCount = Number(snapshot.vault.depositCount);
   const apy = snapshot.yield.apyPercent.toFixed(2);
-  const annualYield = snapshot.yield.estimatedAnnualYieldTokens.toLocaleString(undefined, { maximumFractionDigits: 2 });
-  const annualYieldUsd = snapshot.yield.estimatedAnnualYieldUsd.toLocaleString(undefined, {
-    style: 'currency',
-    currency: 'USD',
-    maximumFractionDigits: 2,
-  });
+  const annualYield = formatToken(snapshot.yield.estimatedAnnualYieldTokens);
+  const annualYieldUsd = formatUsdValue(snapshot.yield.estimatedAnnualYieldUsd);
   const fullVaultYieldTokens = snapshot.derived.totalTrackedTokens * (snapshot.yield.apyPercent / 100);
   const extraYieldTokens = Math.max(0, fullVaultYieldTokens - snapshot.yield.estimatedAnnualYieldTokens);
-  const fullVaultYield = fullVaultYieldTokens.toLocaleString(undefined, { maximumFractionDigits: 2 });
-  const extraYield = extraYieldTokens.toLocaleString(undefined, { maximumFractionDigits: 2 });
-  const fullVaultYieldUsd = (fullVaultYieldTokens * snapshot.yield.rwaUsdPrice).toLocaleString(undefined, {
-    style: 'currency',
-    currency: 'USD',
-    maximumFractionDigits: 2,
-  });
+  const fullVaultYield = formatToken(fullVaultYieldTokens);
+  const extraYield = formatToken(extraYieldTokens);
+  const fullVaultYieldUsd = formatUsdValue(fullVaultYieldTokens * snapshot.yield.rwaUsdPrice);
   const hasPrivateVault = Boolean(snapshot.confidentialVault?.exists);
   const privateOps = Number(snapshot.confidentialVault?.operationCount || 0);
   const encryptedHandle = snapshot.confidentialVault?.encryptedBalanceHandle;
   const shortHandle = encryptedHandle ? `${encryptedHandle.slice(0, 10)}...${encryptedHandle.slice(-6)}` : 'not created yet';
 
   if (lower.includes('public vault') || lower.includes('confidential vault') || lower.includes('compare')) {
-    return `BlindOracle currently shows two paths for your ${symbol} exposure. Your public vault has ${vaultBalance} ${symbol} with ${depositCount} deposit operation${depositCount === 1 ? '' : 's'}; this is readable for the live ERC20 demo. Your Confidential FHE Vault is ${hasPrivateVault ? `created with encrypted handle ${shortHandle}` : 'not created yet'}, so Zama FHE can represent the balance as ciphertext instead of exposing plaintext financial data.`;
+    return sectioned(
+      [
+        { content: `Your public vault holds ${vaultBalance} ${symbol}; your Confidential FHE Vault is ${hasPrivateVault ? 'active' : 'not created yet'}.` },
+        { label: 'Comparison Breakdown', content: `Public vault exposure is readable at ${vaultBalance} ${symbol} with ${depositCount} deposit operation${depositCount === 1 ? '' : 's'}. Confidential FHE Vault status is ${hasPrivateVault ? `active with encrypted handle ${shortHandle}` : 'not created yet'}, so sensitive balances can be represented as ciphertext instead of plaintext.` },
+      ]
+    );
   }
 
   if (lower.includes('zama') || lower.includes('fhe') || lower.includes('protect') || lower.includes('privacy')) {
-    return `BlindOracle uses Zama FHE for the confidential vault path: the balance is stored as an encrypted handle, and authorized decryption is handled through Zama KMS permission flows. That means the app can keep RWA accounting on-chain while avoiding plaintext balance exposure in the confidential path.`;
+    return sectioned(
+      [{ content: 'Zama FHE protects the confidential vault by storing private balances as encrypted handles instead of plaintext values.' }]
+    );
   }
 
   if (lower.includes('encrypted') || lower.includes('private risk') || lower.includes('balance risk')) {
     if (!hasPrivateVault) {
-      return `Your encrypted balance risk is mainly setup risk right now: you have not created a Confidential FHE Vault yet. In BlindOracle, creating it moves the private accounting path to a Zama FHE encrypted handle so observers do not see the plaintext confidential balance.`;
+      return sectioned(
+        [
+          { content: 'You do not have encrypted balance protection active yet because no Confidential FHE Vault exists.' },
+          { label: 'Vulnerability Assessment', content: 'The current vulnerability is setup risk: private accounting is unavailable until the confidential vault exists.' },
+        ]
+      );
     }
 
-    return `Your Confidential FHE Vault exists and has ${privateOps} private operation${privateOps === 1 ? '' : 's'}. The encrypted balance handle is ${shortHandle}; the risk to watch is access control around who can request decryption through Zama KMS, not public plaintext balance leakage.`;
+    return sectioned(
+      [
+        { content: `Your Confidential FHE Vault is active with ${privateOps} private operation${privateOps === 1 ? '' : 's'}.` },
+        { label: 'Vulnerability Assessment', content: `Primary risk shifts from plaintext balance leakage to decryption permission control around handle ${shortHandle}.` },
+      ]
+    );
   }
 
   if (lower.includes('earn yield privately') || (lower.includes('yield') && (lower.includes('private') || lower.includes('privately')))) {
-    return `Yes, BlindOracle's direction is private RWA yield: keep the public demo vault for transparent ERC20 deposits, then use the Confidential FHE Vault to represent sensitive balances with Zama FHE. In the current demo, yield is estimated from the public vaulted balance at ${apy}% APY; private yield accounting and encrypted private deposits are the next product step.`;
+    return sectioned(
+      [
+        { content: `Private yield is represented by the confidential path, while current yield simulation uses the public vaulted balance at ${apy}% APY.` },
+        { label: 'Optimization Analysis', content: 'Use the public vault for yield simulation and the Confidential FHE Vault for private balance representation.' },
+      ]
+    );
   }
 
   if (!snapshot.vault.exists) {
-    return `You have ${walletBalance} ${symbol} available in your wallet, but no vault has been created yet. Create a vault and move a portion of your holdings into it to start building a protected allocation.`;
+    return sectioned(
+      [{ content: `You can deposit up to ${walletBalance} ${symbol} from your current liquid balance after creating a vault.` }]
+    );
   }
 
   const wantsEarningsAdvice =
@@ -329,62 +356,140 @@ function getRuleBasedLiveAnalysis(queryText, snapshot) {
     lower.includes('return') ||
     lower.includes('deposit');
 
+  const wantsDepositCapacity =
+    lower.includes('how much can i deposit') ||
+    lower.includes('how much may i deposit') ||
+    lower.includes('what can i deposit') ||
+    lower.includes('deposit limit') ||
+    lower.includes('max deposit') ||
+    lower.includes('maximum deposit') ||
+    (lower.includes('how much') && lower.includes('deposit'));
+
+  if (wantsDepositCapacity) {
+    return sectioned(
+      [{ content: `You can deposit up to ${walletBalance} ${symbol} from your current liquid balance.` }]
+    );
+  }
+
   if (wantsEarningsAdvice) {
     if (snapshot.token.walletFormatted > 0) {
-      return `To earn more, the direct move is to vault more of your liquid balance. You currently have ${walletBalance} ${symbol} available to deposit. If you moved those into the vault, your estimated annual yield would rise at ${apy}% APY, adding roughly ${extraYield} ${symbol} to your portfolio every year.`;
+      return sectioned(
+        [
+          { content: `You can deposit up to ${walletBalance} ${symbol} from your current liquid balance.` },
+          { label: 'Optimization Analysis', content: `Vaulting the liquid balance at ${apy}% APY could add about ${extraYield} ${symbol} per year.` },
+        ]
+      );
     }
-    return `Your full tracked balance is already vaulted. At the current ${apy}% APY, you are earning about ${annualYield} ${symbol} per year. To increase this, you would need to add more ${symbol} to your wallet first.`;
+    return sectioned(
+      [
+        { content: `You do not have additional liquid ${symbol} available to deposit right now.` },
+        { label: 'Optimization Analysis', content: `Current vaulted position earns about ${annualYield} ${symbol} per year at ${apy}% APY (${annualYieldUsd}).` },
+      ]
+    );
   }
 
   if (lower.includes('balance') || lower.includes('how much') || lower.includes('my tokens')) {
-    const base = `You have ${walletBalance} ${symbol} in your wallet and ${vaultBalance} ${symbol} in the public vault.`;
-    const priv = hasPrivateVault ? ` Your Confidential Vault is active and has recorded ${privateOps} private operations securely.` : " You haven't used the Confidential Vault yet.";
-    return base + priv;
+    return sectioned(
+      [{ content: `You have ${walletBalance} ${symbol} in your wallet and ${vaultBalance} ${symbol} in the public vault.` }]
+    );
   }
 
   if (lower.includes('allocation') || lower.includes('portfolio')) {
-    return `Your portfolio is weighted toward the vault: ${vaultShare}% is vaulted (${vaultBalance} ${symbol}) and ${walletShare}% remains liquid in your wallet (${walletBalance} ${symbol}). Total tracked exposure is ${total} ${symbol}.`;
+    return sectioned(
+      [{ content: `Your portfolio is ${vaultShare}% vaulted and ${walletShare}% liquid across ${total} ${symbol}.` }]
+    );
   }
 
   if (lower.includes('risk')) {
-    return `Your main exposure is split between vaulted and liquid holdings: ${vaultShare}% is in the vault and ${walletShare}% remains in your wallet. Keeping more funds vaulted can reduce wallet-side exposure, while keeping some liquid balance preserves flexibility.`;
+    return sectioned(
+      [
+        { content: `Your current risk is concentrated in a ${vaultShare}% vaulted and ${walletShare}% liquid split.` },
+        { label: 'Vulnerability Assessment', content: `Exposure is split between ${vaultShare}% vaulted and ${walletShare}% liquid. Wallet liquidity preserves flexibility, but it is not contributing to vault yield.` },
+      ]
+    );
   }
 
   if (lower.includes('private balance') || (lower.includes('balance') && lower.includes('private'))) {
-    if (!hasPrivateVault) return "You haven't created a Confidential FHE Vault yet. Once created, your private balance will be stored as an encrypted Zama handle.";
-    return `Your private balance is stored as an encrypted Zama FHE handle (${shortHandle}). Because it is encrypted, the exact number is hidden from the public blockchain, but I can see you have performed ${privateOps} private operation${privateOps === 1 ? '' : 's'}.`;
+    if (!hasPrivateVault) return sectioned(
+      [{ content: 'You do not have a private balance yet because no Confidential FHE Vault exists.' }]
+    );
+    return sectioned(
+      [{ content: `Your private balance is represented by encrypted handle ${shortHandle}.` }]
+    );
   }
 
   const publicSummary = `${vaultBalance} ${symbol} in the public vault and ${walletBalance} ${symbol} in your wallet`;
   const privateSummary = hasPrivateVault ? ` plus an encrypted balance in your Confidential Vault (${privateOps} ops)` : '';
   
-  return `You currently track ${total} ${symbol}: ${publicSummary}${privateSummary}. This gives you a ${vaultShare}% public vaulted allocation and a ${walletShare}% liquid allocation.`;
+  return sectioned(
+    [{ content: `You currently track ${total} ${symbol}: ${publicSummary}${privateSummary}.` }]
+  );
+}
+
+function isWalletPortfolioQuestion(queryText) {
+  const lower = String(queryText || '').toLowerCase();
+  const allowedTerms = [
+    'wallet',
+    'portfolio',
+    'vault',
+    'balance',
+    'token',
+    'tokens',
+    'rwa',
+    'usdc',
+    'asset',
+    'assets',
+    'allocation',
+    'deposit',
+    'withdraw',
+    'mint',
+    'yield',
+    'apy',
+    'apr',
+    'earn',
+    'risk',
+    'exposure',
+    'liquid',
+    'liquidity',
+    'private',
+    'privacy',
+    'confidential',
+    'encrypted',
+    'fhe',
+    'zama',
+  ];
+
+  return allowedTerms.some((term) => lower.includes(term));
 }
 
 function buildAnalystContext(snapshot) {
+  const token = (value) => Number(value || 0).toFixed(4);
+  const percent = (value) => Number(value || 0).toFixed(2);
+  const usd = (value) => Number(value || 0).toFixed(2);
+
   return {
     product: 'BlindOracle',
     privacyTechnology: 'Zama FHE',
     asset: 'RWA',
-    vaultBalance: snapshot.vault.balanceFormatted,
-    walletBalance: snapshot.token.walletFormatted,
+    vaultBalance: token(snapshot.vault.balanceFormatted),
+    walletBalance: token(snapshot.token.walletFormatted),
     publicVaultExists: snapshot.vault.exists,
     confidentialVaultExists: snapshot.confidentialVault.exists,
     encryptedBalanceHandle: snapshot.confidentialVault.encryptedBalanceHandle,
     privateOperationCount: Number(snapshot.confidentialVault.operationCount),
     confidentialVaultNote:
       'BlindOracle Confidential FHE Vault stores the balance as an encrypted handle. Only authorized parties can decrypt through Zama KMS permission flows.',
-    totalTrackedTokens: snapshot.derived.totalTrackedTokens,
-    totalTrackedUsdValue: snapshot.derived.totalTrackedUsdValue,
-    vaultedSharePercent: snapshot.derived.vaultedSharePercent,
-    walletSharePercent: snapshot.derived.walletSharePercent,
+    totalTrackedTokens: token(snapshot.derived.totalTrackedTokens),
+    totalTrackedUsdValue: usd(snapshot.derived.totalTrackedUsdValue),
+    vaultedSharePercent: percent(snapshot.derived.vaultedSharePercent),
+    walletSharePercent: percent(snapshot.derived.walletSharePercent),
     depositCount: Number(snapshot.vault.depositCount),
-    apyPercent: snapshot.yield.apyPercent,
-    estimatedAnnualYieldTokens: snapshot.yield.estimatedAnnualYieldTokens,
-    estimatedAnnualYieldUsd: snapshot.yield.estimatedAnnualYieldUsd,
-    fullVaultEstimatedAnnualYieldTokens: snapshot.derived.totalTrackedTokens * (snapshot.yield.apyPercent / 100),
+    apyPercent: percent(snapshot.yield.apyPercent),
+    estimatedAnnualYieldTokens: token(snapshot.yield.estimatedAnnualYieldTokens),
+    estimatedAnnualYieldUsd: usd(snapshot.yield.estimatedAnnualYieldUsd),
+    fullVaultEstimatedAnnualYieldTokens: token(snapshot.derived.totalTrackedTokens * (snapshot.yield.apyPercent / 100)),
     additionalYieldIfWalletIsVaultedTokens:
-      Math.max(0, snapshot.derived.totalTrackedTokens * (snapshot.yield.apyPercent / 100) - snapshot.yield.estimatedAnnualYieldTokens),
+      token(Math.max(0, snapshot.derived.totalTrackedTokens * (snapshot.yield.apyPercent / 100) - snapshot.yield.estimatedAnnualYieldTokens)),
     dataNotes: [
       'This is a single-asset RWA portfolio view.',
       'The public vault is readable for the live ERC20 demo.',
@@ -398,6 +503,11 @@ function cleanAnalystText(text) {
   return text
     .replace(/^\s*Live Sepolia analysis at block\s+\d+\s*:\s*/i, '')
     .replace(/^\s*Sepolia analysis at block\s+\d+\s*:\s*/i, '')
+    .replace(/\s*Direct Answer:?\s*/gi, '\n')
+    .replace(/\s*(Vulnerability Assessment:?)\s*/gi, '\n\nVulnerability Assessment\n')
+    .replace(/\s*(Optimization Analysis:?)\s*/gi, '\n\nOptimization Analysis\n')
+    .replace(/\s*(Comparison Breakdown:?)\s*/gi, '\n\nComparison Breakdown\n')
+    .replace(/\s*(Recommendation:?)\s*/gi, '\n\nRecommendation\n')
     .replace(/\bMTBILL\b/g, 'RWA')
     .replace(/\bmock ERC20 token\b/gi, 'RWA token')
     .replace(/\bdemo token\b/gi, 'RWA token')
@@ -437,10 +547,20 @@ async function getAIResponse(queryText, snapshot) {
             3. Optimize for maximum yield within current Zama FHE constraints.
             4. When referencing privacy, focus on the cryptographic security of the FHE balance handle.
             5. Present findings as intelligence summaries. Never use a "helpful assistant" tone.
+            6. Always directly answer the user's question first in one sentence with no label or heading.
+            7. Only include sections that match the question:
+               - "How much can I deposit?" or general balance questions: answer sentence only.
+               - Earnings, yield, APY, performance, or "earn more" questions: answer sentence + Optimization Analysis only.
+               - Risk or vulnerability questions: answer sentence + Vulnerability Assessment only.
+               - Public vs confidential vault comparison questions: answer sentence + Comparison Breakdown only.
+               - General wallet or portfolio questions: answer sentence only.
+            8. Format analysis labels on their own line, with content on the next line. Do not use inline "Label: content" formatting.
             
             DATA CONSTRAINTS:
             - Refer to the primary asset as RWA.
             - Do not disclose contract addresses or block numbers.
+            - All percentages must use exactly 2 decimal places with toFixed(2)-style formatting.
+            - All token amounts must use no more than 4 decimal places with toFixed(4)-style formatting.
             - Only acknowledge existing on-chain data provided in the context.`,
           },
           {
@@ -550,8 +670,16 @@ async function handleAnalyzeRequest(req, res) {
       return sendJson(res, 400, { error: 'A valid userAddress is required.' });
     }
 
-    if (!query) {
-      return sendJson(res, 400, { error: 'A non-empty query is required.' });
+    if (query.length < 3) {
+      return sendJson(res, 400, { error: 'Please enter a valid question' });
+    }
+
+    if (!isWalletPortfolioQuestion(query)) {
+      return sendJson(res, 200, {
+        analysis: 'Ask a question related to your wallet or portfolio.',
+        model: 'scope-filter',
+        snapshot: null,
+      });
     }
 
     const snapshot = await readPortfolioSnapshot(userAddress, additionalTokens, fheUsdcBalance);

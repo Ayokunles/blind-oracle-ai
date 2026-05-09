@@ -8,11 +8,8 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
-<<<<<<< HEAD
       'tfhe': path.resolve(__dirname, './node_modules/tfhe'),
       'tkms': path.resolve(__dirname, './node_modules/tkms'),
-=======
->>>>>>> d2df176cb3828cedfb74f8898dd12cce542c8762
     },
   },
 });
