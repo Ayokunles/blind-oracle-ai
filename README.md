@@ -5,7 +5,7 @@
 > **Live Application**: [https://blind-oracle.vercel.app](https://blind-oracle.vercel.app)
 > **Video Demo**: [Insert YouTube/Vimeo Link Here]
 
-![Dashboard Screenshot](./frontend/public/placeholder.png) *(Note: Add your final screenshot here!)*
+![Dashboard Screenshot](image.png)
 
 ---
 
