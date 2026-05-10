@@ -288,6 +288,7 @@ function AppContent({ isDarkMode, setIsDarkMode }) {
   const [txStatus, setTxStatus] = useState('');
   const [privateInitialAmount, setPrivateInitialAmount] = useState('100');
   const [fheStatus, setFheStatus] = useState('');
+  const [fhePrivateBalance, setFhePrivateBalance] = useState(0);
   const [fheBalanceRevealed, setFheBalanceRevealed] = useState(false);
   const [isRevealing, setIsRevealing] = useState(false);
 
@@ -592,6 +593,7 @@ function AppContent({ isDarkMode, setIsDarkMode }) {
       await waitForTransactionReceipt(config, { hash: createHash });
 
       setFheStatus('Confidential vault created. The balance is stored as an encrypted handle.');
+      setFhePrivateBalance(Number(amount));
       refetchHasPrivateVault();
       refetchEncryptedBalanceHandle();
       refetchPrivateOperationCount();
@@ -659,6 +661,7 @@ function AppContent({ isDarkMode, setIsDarkMode }) {
       await waitForTransactionReceipt(config, { hash: tx });
 
       setPrivateDepositAmount('');
+      setFhePrivateBalance(prev => prev + Number(amount));
       setFheStatus('Private deposit confirmed!');
       refetchEncryptedBalanceHandle();
       refetchPrivateOperationCount();
@@ -699,6 +702,7 @@ function AppContent({ isDarkMode, setIsDarkMode }) {
       await waitForTransactionReceipt(config, { hash: tx });
 
       setPrivateWithdrawAmount('');
+      setFhePrivateBalance(prev => prev - Number(amount));
       setFheStatus('Private withdrawal confirmed!');
       refetchEncryptedBalanceHandle();
       refetchPrivateOperationCount();
@@ -1367,10 +1371,10 @@ function AppContent({ isDarkMode, setIsDarkMode }) {
                               <div className="flex items-center justify-between">
                                 <div>
                                   <span className="text-sm font-bold text-[var(--gold)] mr-2">
-                                    {vaultTokenAmount.toLocaleString()} {displayTokenSymbol}
+                                    {fhePrivateBalance.toLocaleString()} {displayTokenSymbol}
                                   </span>
                                   <span className="text-[10px] text-[var(--text-muted)] font-medium">
-                                    ({formatUsd(vaultUsdValue)})
+                                    ({formatUsd(fhePrivateBalance * livePriceUsd)})
                                   </span>
                                 </div>
                                 <span className="text-[9px] uppercase tracking-tighter opacity-60">Decrypted Balance</span>
