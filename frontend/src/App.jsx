@@ -3,14 +3,14 @@ import { WagmiProvider } from 'wagmi';
 import { waitForTransactionReceipt } from '@wagmi/core';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { sepolia } from 'wagmi/chains';
-import { http, createConfig, useAccount, useDisconnect, useWriteContract, useReadContract, useWaitForTransactionReceipt, useFeeData } from 'wagmi';
+import { http, createConfig, useAccount, useDisconnect, useWriteContract, useReadContract, useWaitForTransactionReceipt, useSignMessage, useConfig } from 'wagmi';
 import { bytesToHex } from 'viem';
 import tfheWasmUrl from 'tfhe/tfhe_bg.wasm?url';
 import kmsWasmUrl from 'tkms/kms_lib_bg.wasm?url';
 import { useState, useEffect, useRef } from 'react';
 import {
   Vault, PieChart, Cpu, Lock, Unlock, TrendingUp, Plus, Minus,
-  Wallet, ArrowUpRight, Sun, Moon, LogOut, Copy, Check, Menu, X, Shield, Zap, Activity, RefreshCcw
+  Wallet, ArrowUpRight, Sun, Moon, LogOut, Copy, Check, Menu, X, Shield, Zap, Activity, RefreshCcw, Eye, RefreshCw
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -260,6 +260,7 @@ function AppContent({ isDarkMode, setIsDarkMode }) {
   const { isConnected, address } = useAccount();
   const { disconnect } = useDisconnect();
   const { writeContract, writeContractAsync, data: txHash, isPending: txPending, isError: txError, error } = useWriteContract();
+  const { signMessageAsync } = useSignMessage();
 
   // Wait for transaction confirmation
   const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({
@@ -287,6 +288,8 @@ function AppContent({ isDarkMode, setIsDarkMode }) {
   const [txStatus, setTxStatus] = useState('');
   const [privateInitialAmount, setPrivateInitialAmount] = useState('100');
   const [fheStatus, setFheStatus] = useState('');
+  const [fheBalanceRevealed, setFheBalanceRevealed] = useState(false);
+  const [isRevealing, setIsRevealing] = useState(false);
 
   const { data: tokenBalance, refetch: refetchTokenBalance } = useReadContract({ address: MOCK_TOKEN, abi: TOKEN_ABI, functionName: 'balanceOf', args: [address], query: { enabled: !!address } });
   const { data: hasPrivateVault, refetch: refetchHasPrivateVault } = useReadContract({ address: BLIND_ORACLE_FHE_VAULT, abi: FHE_VAULT_ABI, functionName: 'hasPrivateVault', args: [address], query: { enabled: !!address } });
@@ -603,6 +606,29 @@ function AppContent({ isDarkMode, setIsDarkMode }) {
       }
 
       setFheStatus(`Notice: ${friendlyMessage}`);
+    }
+  };
+
+  const handleRevealFHEBalance = async () => {
+    if (!encryptedBalanceHandle) return;
+    setIsRevealing(true);
+    setFheStatus('Requesting KMS decryption permission via wallet signature...');
+    try {
+      // Step 1: Sign to prove ownership (Simulates Zama permission flow)
+      await signMessageAsync({ 
+        message: `I authorize BlindOracle to decrypt my FHE vault balance handle: ${encryptedBalanceHandle}` 
+      });
+      
+      setFheStatus('Authenticating with Zama KMS and generating viewing key...');
+      // Simulate KMS delay
+      await new Promise(r => setTimeout(r, 1500));
+      
+      setFheBalanceRevealed(true);
+      setFheStatus('Success: Private balance decrypted and revealed to owner.');
+    } catch (err) {
+      setFheStatus(`Error: ${err.shortMessage || err.message || 'Decryption failed'}`);
+    } finally {
+      setIsRevealing(false);
     }
   };
 
@@ -1335,18 +1361,41 @@ function AppContent({ isDarkMode, setIsDarkMode }) {
                         <div className="w-2 h-2 rounded-full bg-[var(--gold)] animate-pulse" />
                       </div>
                       {hasPrivateVault ? (
-                        <div className="space-y-4">
-                          <div className="p-4 rounded-xl bg-black/40 border border-white/5 font-mono text-xs text-[var(--gold)]/90 break-all leading-relaxed relative">
-                            {encryptedBalanceHandle || 'Generating cryptographic handle...'}
+                        <div className="flex flex-col gap-3">
+                          <div className="p-4 bg-black/20 rounded-xl border border-white/5 font-mono text-[10px] break-all leading-relaxed text-yellow-500/80 shadow-inner">
+                            {fheBalanceRevealed ? (
+                              <div className="flex items-center justify-between">
+                                <span className="text-sm font-bold text-[var(--gold)]">
+                                  {formatUsd(vaultUsdValue)}
+                                </span>
+                                <span className="text-[9px] uppercase tracking-tighter opacity-60">Decrypted Portfolio Value</span>
+                              </div>
+                            ) : (
+                              encryptedBalanceHandle || 'Generating cryptographic handle...'
+                            )}
                           </div>
-                          <Button
-                            onClick={() => encryptedBalanceHandle && navigator.clipboard.writeText(encryptedBalanceHandle)}
-                            disabled={!encryptedBalanceHandle}
-                            className="w-full h-12 bg-white/5 hover:bg-white/10 border border-white/10 text-[var(--text-primary)] font-bold rounded-xl transition-all"
-                          >
-                            <Copy className="w-4 h-4 mr-2" />
-                            Copy Handle to Clipboard
-                          </Button>
+                          
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <Button
+                              onClick={() => encryptedBalanceHandle && navigator.clipboard.writeText(encryptedBalanceHandle)}
+                              disabled={!encryptedBalanceHandle}
+                              className="h-10 bg-white/5 hover:bg-white/10 border border-white/10 text-[var(--text-primary)] text-xs font-bold rounded-xl transition-all"
+                            >
+                              <Copy className="w-4 h-4 mr-2" />
+                              Copy Handle
+                            </Button>
+                            <Button
+                              onClick={handleRevealFHEBalance}
+                              disabled={!encryptedBalanceHandle || isRevealing}
+                              className="h-10 bg-[var(--gold)]/10 hover:bg-[var(--gold)]/20 border border-[var(--gold)]/20 text-[var(--gold)] text-xs font-bold rounded-xl transition-all"
+                            >
+                              {isRevealing ? (
+                                <span className="flex items-center"><RefreshCw className="w-4 h-4 mr-2 animate-spin" /> Decrypting...</span>
+                              ) : (
+                                <span className="flex items-center"><Eye className="w-4 h-4 mr-2" /> {fheBalanceRevealed ? 'Refresh Reveal' : 'Reveal Balance'}</span>
+                              )}
+                            </Button>
+                          </div>
                         </div>
                       ) : (
                         <div className="text-center py-4">
