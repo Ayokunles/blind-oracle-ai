@@ -2,7 +2,7 @@
 
 
 > **Live Application**: [https://blind-oracle.vercel.app](https://blind-oracle.vercel.app)
-> **Video Demo**: [Insert YouTube/Vimeo Link Here]
+> **Video Demo**: [https://x.com/oracle_blindrwa/status/2053535624066441670/video/1](https://x.com/oracle_blindrwa/status/2053535624066441670/video/1)
 
 ![Dashboard Screenshot](image.png)
 
