@@ -1,6 +1,5 @@
 # BlindOracle: Sovereign Institutional Wealth Manager
 
-**Winner's Pitch for Zama Developer Program Mainnet Season 2 - Builder Track**
 
 > **Live Application**: [https://blind-oracle.vercel.app](https://blind-oracle.vercel.app)
 > **Video Demo**: [Insert YouTube/Vimeo Link Here]
