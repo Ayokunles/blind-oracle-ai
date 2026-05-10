@@ -23,7 +23,7 @@ const MOCK_TOKEN = import.meta.env.VITE_MOCK_TOKEN || '0x0a9A09B392f95D8999a1a5a
 const MOCK_USDC = '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238';
 const RPC_URL = import.meta.env.VITE_RPC_URL;
 const DISPLAY_TOKEN_SYMBOL = import.meta.env.VITE_DISPLAY_TOKEN_SYMBOL || 'RWA';
-const TOKEN_USD_PRICE = Number(import.meta.env.VITE_RWA_USD_PRICE || '1');
+const TOKEN_USD_PRICE = Number(import.meta.env.VITE_RWA_USD_PRICE || '0.45');
 const TOKEN_UNIT_DECIMALS = 18;
 
 const VAULT_ABI = [{
@@ -967,25 +967,35 @@ function AppContent({ isDarkMode, setIsDarkMode }) {
   return (
     <div className="min-h-screen bg-[var(--bg-primary)] relative overflow-hidden">
       {/* Mobile Header */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 border-b border-[var(--border-color)] bg-[var(--bg-secondary)]">
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 border-b border-[var(--border-color)] bg-[var(--bg-secondary)]/90 backdrop-blur-md">
         <div className="flex items-center justify-between px-4 py-3">
-          <div className="flex items-center gap-3">
-            <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 hover:bg-[var(--bg-muted)] rounded-lg">
-              {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          <div className="flex items-center gap-2">
+            <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-1.5 hover:bg-[var(--bg-muted)] rounded-lg">
+              {sidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
-            <AppLogo className="w-7 h-7" />
-            <span className="font-semibold text-[var(--text-primary)]">BlindOracle</span>
+            <AppLogo className="w-6 h-6 ml-1" />
+            <span className="font-bold text-[var(--text-primary)] text-sm tracking-tight hidden sm:inline-block">BlindOracle</span>
           </div>
-          <button onClick={() => setIsDarkMode(!isDarkMode)} className="p-2 hover:bg-[var(--bg-muted)] rounded-lg">
-            {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-          </button>
-          <button
-            onClick={handleRefreshData}
-            className={`p-2 hover:bg-[var(--bg-muted)] rounded-lg transition-all ${txStatus.includes('Refreshing') ? 'animate-spin opacity-50' : ''}`}
-            title="Refresh Data"
-          >
-            <RefreshCcw className="w-4 h-4 text-[var(--text-secondary)]" />
-          </button>
+          <div className="flex items-center gap-2">
+            {!isConnected && (
+              <ConnectButton.Custom>
+                {({ openConnectModal }) => (
+                  <button onClick={openConnectModal} className="px-3 py-1.5 rounded-lg gold-gradient text-black text-[11px] font-bold shadow-lg mr-1">
+                    Connect
+                  </button>
+                )}
+              </ConnectButton.Custom>
+            )}
+            <button onClick={() => setIsDarkMode(!isDarkMode)} className="p-2 hover:bg-[var(--bg-muted)] rounded-lg">
+              {isDarkMode ? <Sun className="w-4 h-4 text-[var(--text-secondary)]" /> : <Moon className="w-4 h-4 text-[var(--text-secondary)]" />}
+            </button>
+            <button
+              onClick={handleRefreshData}
+              className={`p-2 hover:bg-[var(--bg-muted)] rounded-lg transition-all ${txStatus.includes('Refreshing') ? 'animate-spin opacity-50' : ''}`}
+            >
+              <RefreshCcw className="w-4 h-4 text-[var(--text-secondary)]" />
+            </button>
+          </div>
         </div>
       </div>
 
@@ -1063,7 +1073,7 @@ function AppContent({ isDarkMode, setIsDarkMode }) {
       </aside>
 
       {/* Main Content Area */}
-      <main className="lg:ml-72 min-h-screen pt-14 lg:pt-0">
+      <main className="lg:ml-72 min-h-screen pt-[68px] lg:pt-0">
         {/* Top bar refined */}
         <header className="hidden lg:flex items-center justify-between px-8 py-6 border-b border-[var(--border-color)] bg-[var(--bg-secondary)]/50 backdrop-blur-md sticky top-0 z-30">
           <div className="flex items-center gap-6">
@@ -1310,10 +1320,10 @@ function AppContent({ isDarkMode, setIsDarkMode }) {
                       <div className="w-12 h-12 rounded-2xl gold-gradient flex items-center justify-center shadow-[0_0_20px_var(--gold-glow)]">
                         <Shield className="w-6 h-6 text-black" />
                       </div>
-                      <div>
-                        <CardTitle className="text-xl font-bold text-[var(--text-primary)]">Confidential FHE Vault</CardTitle>
-                        <CardDescription className="text-xs text-[var(--text-muted)] font-bold uppercase tracking-wider mt-1">
-                          Private {displayTokenSymbol} accounting via Zama FHE
+                      <div className="pr-16 sm:pr-0">
+                        <CardTitle className="text-lg sm:text-xl font-bold text-[var(--text-primary)] leading-tight">Confidential FHE Vault</CardTitle>
+                        <CardDescription className="text-[10px] sm:text-xs text-[var(--text-muted)] font-bold uppercase tracking-wider mt-1">
+                          Private {displayTokenSymbol} accounting
                         </CardDescription>
                       </div>
                     </div>
@@ -1533,7 +1543,12 @@ function AppContent({ isDarkMode, setIsDarkMode }) {
                       <TrendingUp className="w-4 h-4 text-gold" />
                       Track Additional Assets
                     </CardTitle>
-                    <CardDescription className="text-xs">Add other ERC20 token addresses to see them in your portfolio allocation breakdown.</CardDescription>
+                    <CardDescription className="text-xs text-[var(--text-muted)]">
+                      Add other ERC20 token addresses to track them in your portfolio breakdown.
+                      <span className="block mt-1.5 text-[10px] text-[var(--gold)] font-bold uppercase tracking-widest">
+                        Note: You can only add USDC and EURC for now.
+                      </span>
+                    </CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="flex gap-2 mb-4">
@@ -1588,7 +1603,7 @@ function AppContent({ isDarkMode, setIsDarkMode }) {
                             onClick={() => setMintToken(t)}
                             className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all ${mintToken === t ? 'bg-[var(--bg-card)] text-[var(--gold)] shadow-sm' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}
                           >
-                            {t === 'USDC' ? 'USD Coin (USDC)' : `${displayTokenSymbol} Asset`}
+                            {t === 'USDC' ? 'USD Coin / EURC' : `${displayTokenSymbol} Asset`}
                           </button>
                         ))}
                       </div>
@@ -1614,15 +1629,15 @@ function AppContent({ isDarkMode, setIsDarkMode }) {
                             <h3 className="text-2xl font-bold text-[var(--text-primary)]">Mint Demo {displayTokenSymbol}</h3>
                             <p className="text-sm text-[var(--text-muted)] mt-2 font-medium">Create test liquidity to interact with the BlindOracle vault system.</p>
                           </div>
-                          <div className="flex gap-3 max-w-md mx-auto">
+                          <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
                             <input
                               type="number"
                               value={mintAmount}
                               onChange={(e) => setMintAmount(e.target.value)}
                               placeholder="0.00"
-                              className="input flex-1 h-12 text-lg font-bold"
+                              className="input flex-1 h-12 text-lg font-bold w-full"
                             />
-                            <Button onClick={() => setShowMintConfirm(true)} disabled={!mintAmount} className="btn-primary h-12 px-8 shadow-[0_0_15px_var(--gold-glow)]">
+                            <Button onClick={() => setShowMintConfirm(true)} disabled={!mintAmount} className="btn-primary h-12 px-8 shadow-[0_0_15px_var(--gold-glow)] w-full sm:w-auto">
                               Initiate Mint
                             </Button>
                           </div>
@@ -1633,9 +1648,9 @@ function AppContent({ isDarkMode, setIsDarkMode }) {
                             <div className="w-16 h-16 rounded-2xl bg-blue-500/20 flex items-center justify-center mx-auto mb-6">
                               <span className="text-2xl font-bold text-blue-400">$</span>
                             </div>
-                            <h3 className="text-2xl font-bold text-[var(--text-primary)] mb-2 tracking-tight">Official Sepolia USDC</h3>
+                            <h3 className="text-2xl font-bold text-[var(--text-primary)] mb-2 tracking-tight">Official Sepolia USDC/EURC</h3>
                             <p className="text-sm text-[var(--text-muted)] mb-8 font-medium leading-relaxed">
-                              BlindOracle supports real Sepolia USDC for a professional demo. Request test tokens from Circle's official portal.
+                              BlindOracle supports real Sepolia USDC and EURC for a professional demo. Request test tokens from Circle's official portal.
                             </p>
                             <Button
                               onClick={() => window.open('https://faucet.circle.com/', '_blank')}
