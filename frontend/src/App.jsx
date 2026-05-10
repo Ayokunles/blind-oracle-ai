@@ -23,7 +23,7 @@ const MOCK_TOKEN = import.meta.env.VITE_MOCK_TOKEN || '0x0a9A09B392f95D8999a1a5a
 const MOCK_USDC = '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238';
 const RPC_URL = import.meta.env.VITE_RPC_URL;
 const DISPLAY_TOKEN_SYMBOL = import.meta.env.VITE_DISPLAY_TOKEN_SYMBOL || 'RWA';
-const TOKEN_USD_PRICE = Number(import.meta.env.VITE_RWA_USD_PRICE || '0.45');
+const TOKEN_USD_PRICE = 0.45;
 const TOKEN_UNIT_DECIMALS = 18;
 
 const VAULT_ABI = [{
