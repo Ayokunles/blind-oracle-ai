@@ -26,7 +26,7 @@ const CONFIG = {
   groqModel: process.env.GROQ_MODEL || 'llama-3.1-8b-instant',
   yieldApyBps: Number(process.env.YIELD_APY_BPS || 520),
   yieldSource: process.env.YIELD_SOURCE || 'configured-demo-rate',
-  rwaUsdPrice: Number(process.env.RWA_USD_PRICE || 1),
+  rwaUsdPrice: Number(process.env.RWA_USD_PRICE || 0.45),
   priceApiUrl: process.env.PRICE_API_URL || 'https://api.coingecko.com/api/v3/simple/price?ids=ondo-finance&vs_currencies=usd',
   priceCacheTtlMs: Number(process.env.PRICE_CACHE_TTL_MS || 60000),
   apySourceUrl: process.env.APY_SOURCE_URL || '',
