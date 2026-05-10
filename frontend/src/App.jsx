@@ -1365,10 +1365,15 @@ function AppContent({ isDarkMode, setIsDarkMode }) {
                           <div className="p-4 bg-black/20 rounded-xl border border-white/5 font-mono text-[10px] break-all leading-relaxed text-yellow-500/80 shadow-inner">
                             {fheBalanceRevealed ? (
                               <div className="flex items-center justify-between">
-                                <span className="text-sm font-bold text-[var(--gold)]">
-                                  {formatUsd(vaultUsdValue)}
-                                </span>
-                                <span className="text-[9px] uppercase tracking-tighter opacity-60">Decrypted Portfolio Value</span>
+                                <div>
+                                  <span className="text-sm font-bold text-[var(--gold)] mr-2">
+                                    {vaultTokenAmount.toLocaleString()} {displayTokenSymbol}
+                                  </span>
+                                  <span className="text-[10px] text-[var(--text-muted)] font-medium">
+                                    ({formatUsd(vaultUsdValue)})
+                                  </span>
+                                </div>
+                                <span className="text-[9px] uppercase tracking-tighter opacity-60">Decrypted Balance</span>
                               </div>
                             ) : (
                               encryptedBalanceHandle || 'Generating cryptographic handle...'
